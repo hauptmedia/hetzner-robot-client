@@ -27,7 +27,7 @@
  */
 class RobotClient extends RobotRestClient
 {
-  const VERSION = '2015.03';
+  const VERSION = '2016.07';
   
   /**
    * Class constructor
@@ -158,7 +158,24 @@ class RobotClient extends RobotRestClient
 
     return $this->get($url);
   }
+  
+  /**
+   * Execute vServer command
+   *
+   * @param $ip Server main ip
+   * @param $type Command type, ie. start, stop and shutdown
+   *
+   * @return object Reset object
+   *
+   * @throws RobotClientException
+   */
+  public function commandExecute($ip, $type)
+  {
+    $url = $this->baseUrl . '/vserver/' . $ip . '/command';
 
+    return $this->post($url, array('type' => $type));
+  }
+  
   /**
    * Execute server reset
    *
