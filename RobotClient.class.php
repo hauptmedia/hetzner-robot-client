@@ -5,7 +5,8 @@
  * 
  * Documentation: http://wiki.hetzner.de/index.php/Robot_Webservice/en
  * 
- * Copyright (c) 2015 Hetzner Online AG
+ * Copyright (c) 2013-2016 Hetzner Online AG
+ * Contributions for many methods made by David@Refoua.me
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +25,13 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ *
  */
+require_once 'RobotRestClient.class.php';
+require_once 'RobotClientException.class.php';
 class RobotClient extends RobotRestClient
 {
-  const VERSION = '2016.07';
+  const VERSION = '2016.08';
   
   /**
    * Class constructor
@@ -150,11 +154,8 @@ class RobotClient extends RobotRestClient
    */
   public function resetGet($ip = null)
   {
-    $url = $this->baseUrl . '/reset';
-    if ($ip)
-    {
-      $url .= '/' . $ip;
-    }
+    $url = $this->baseUrl . '/reset' .
+        ($ip ? '/' . $ip : '');
 
     return $this->get($url);
   }
@@ -165,7 +166,7 @@ class RobotClient extends RobotRestClient
    * @param $ip Server main ip
    * @param $type Command type, ie. start, stop and shutdown
    *
-   * @return object Reset object
+   * @return object Status object
    *
    * @throws RobotClientException
    */
@@ -742,9 +743,7 @@ class RobotClient extends RobotRestClient
     $url = $this->baseUrl . '/server/' . $ip . '/cancellation';
     $data = array('cancellation_date' => $cancellationDate);
     if ($cancellationReason)
-    {
       $data['cancellation_reason'] = $cancellationReason;
-    }
 
     return $this->post($url, $data);
   }
@@ -1409,5 +1408,71 @@ class RobotClient extends RobotRestClient
     }
 
     return $this->post($url, $data);
+  }
+  
+  /**
+   * Query snapshots for a specific server
+   *
+   * @param $ip Server main ip
+   *
+   * @return object List of snapshots
+   *
+   * @throws RobotClientException
+   */
+  public function snapshotGet($ip)
+  { 
+    $url = $this->baseUrl . '/snapshot/' . $ip;
+
+    return $this->get($url);
+  }
+  
+  /**
+   * Create new snapshot of specific server
+   *
+   * @param $ip Server main ip
+   *
+   * @return object Newly created snapshot
+   *
+   * @throws RobotClientException
+   */
+  public function snapshotCreate($ip)
+  { 
+    $url = $this->baseUrl . '/snapshot/' . $ip;
+
+    return $this->post($url);
+  }
+
+  /**
+   * Delete snapshot
+   *
+   * @param $ip Server main ip
+   * @param $id Snapshot id
+   *
+   * @throws RobotClientException
+   */
+  public function snapshotDelete($ip, $id)
+  {
+    $url = $this->baseUrl . '/snapshot/' . $ip  . '/' . $id;
+
+    return $this->delete($url);
+  }
+  
+  /**
+   * Revert to snapshot or rename a snapshot
+   *
+   * @param $ip Server main ip
+   * @param $id Snapshot id
+   * @param $revert Must be set to "true" to revert the snapshot
+   * @param $name Name of the snapshot
+   *
+   * @return object Status object
+   *
+   * @throws RobotClientException
+   */
+  public function snapshotPost($ip, $id, $revert = 'true', $name = false)
+  { 
+    $url = $this->baseUrl . '/snapshot/' . $ip  . '/' . $id;
+
+    return $this->post($url, array('revert' => $revert, 'name' => $name));
   }
 }
